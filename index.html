@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CreditLens | Credit Risk Analyzer</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💳</text></svg>">
+<style>
+:root{--bg:#0b1220;--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.12);--tx:#eaf0ff;--mut:#93a1c0;--a:#4f8cff;--b:#22d3a6;--ok:#22d3a6;--mid:#fbbf24;--bad:#ff5d73}
+*{box-sizing:border-box;margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden}
+.blob{position:fixed;width:46vmax;height:46vmax;border-radius:50%;filter:blur(90px);opacity:.28;z-index:-1;animation:float 18s ease-in-out infinite alternate}
+.b1{background:var(--a);top:-15vmax;left:-10vmax}.b2{background:var(--b);bottom:-18vmax;right:-12vmax;animation-delay:-8s}
+@keyframes float{to{transform:translate(8vmax,6vmax) scale(1.15)}}
+header{display:flex;align-items:center;gap:12px;padding:22px clamp(16px,5vw,56px)}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--a),var(--b));display:grid;place-items:center;font-size:22px;animation:pulse 3s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(79,140,255,.0),0 0 24px rgba(79,140,255,.5)}}
+header h1{font-size:1.25rem}header p{color:var(--mut);font-size:.85rem}
+.dot{margin-left:auto;font-size:.8rem;color:var(--mut);display:flex;align-items:center;gap:6px}
+.dot i{width:9px;height:9px;border-radius:50%;background:var(--mut)}.dot.on i{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+main{display:grid;grid-template-columns:1.25fr 1fr;gap:22px;padding:0 clamp(16px,5vw,56px) 48px;max-width:1300px;margin:auto}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);backdrop-filter:blur(14px);border-radius:20px;padding:22px;animation:rise .6s both}
+.card:nth-child(2){animation-delay:.12s}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}}
+h2{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:20px 0 12px}h2:first-child{margin-top:0}
+.field{margin-bottom:16px}
+.row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.92rem}
+.row label{color:var(--mut)}
+.num{width:110px;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:10px;color:var(--tx);padding:6px 10px;text-align:right;font-weight:600;font-size:.95rem}
+.num:focus{outline:2px solid var(--a)}
+input[type=range]{width:100%;appearance:none;height:6px;border-radius:6px;background:linear-gradient(90deg,var(--a) var(--p,0%),rgba(255,255,255,.14) var(--p,0%));cursor:pointer}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--a);transition:transform .15s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--a)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--tx);cursor:pointer;font-size:.88rem;transition:.2s}
+.chip:hover{transform:translateY(-2px);border-color:var(--a)}
+.chip.on{background:linear-gradient(135deg,var(--a),#7c5cff);border-color:transparent;box-shadow:0 6px 18px rgba(79,140,255,.4)}
+.grades .chip{width:44px;text-align:center;padding:9px 0;border-radius:12px;font-weight:700}
+.seg{display:flex;background:rgba(255,255,255,.06);border-radius:12px;padding:4px;gap:4px}
+.seg .chip{flex:1;border:0;border-radius:9px;text-align:center}
+.lti{display:flex;align-items:center;gap:12px;margin-top:6px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.05);font-size:.9rem;color:var(--mut)}
+.lti b{font-size:1.2rem;color:var(--tx)}.bar{flex:1;height:8px;border-radius:8px;background:rgba(255,255,255,.12);overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--ok);transition:.5s}
+button.go{width:100%;margin-top:22px;padding:15px;border:0;border-radius:14px;font-size:1.02rem;font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--a),var(--b));transition:.2s;position:relative;overflow:hidden}
+button.go:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(79,140,255,.45)}button.go:disabled{opacity:.7;cursor:wait}
+button.go.load::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:sh 1s infinite}
+@keyframes sh{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.res{position:sticky;top:18px;text-align:center}
+svg{width:100%;max-width:340px}
+.track{fill:none;stroke:rgba(255,255,255,.12);stroke-width:16;stroke-linecap:round}
+#arc{fill:none;stroke:var(--mut);stroke-width:16;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1),stroke .6s}
+#tick{stroke:#fff;stroke-width:3;stroke-linecap:round;opacity:0;transition:opacity .6s 1s}
+#pct{font-size:2.6rem;font-weight:800;margin-top:-62px}
+.verdict{display:inline-block;margin:12px 0;padding:8px 20px;border-radius:999px;font-weight:700;background:rgba(255,255,255,.08);transition:.4s}
+.verdict.ok{background:rgba(34,211,166,.18);color:var(--ok)}.verdict.bad{background:rgba(255,93,115,.18);color:var(--bad);animation:shake .5s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.stats div{background:rgba(255,255,255,.05);border-radius:14px;padding:12px;font-size:.8rem;color:var(--mut)}.stats b{display:block;color:var(--tx);font-size:1.05rem}
+.hint{color:var(--mut);font-size:.88rem;margin-top:10px;min-height:2.6em}
+.err{color:var(--bad)}
+</style></head><body>
+<div class="blob b1"></div><div class="blob b2"></div>
+<header><div class="logo">💳</div><div><h1>CreditLens</h1><p>AI-powered credit risk analyzer</p></div><div class="dot" id="dot"><i></i><span>checking…</span></div></header>
+<main>
+<section class="card">
+ <h2>👤 Applicant</h2><div id="sl1"></div>
+ <div class="field"><div class="row"><label>Home ownership</label></div><div class="chips" id="home"></div></div>
+ <h2>💰 Loan</h2><div id="sl2"></div>
+ <div class="field"><div class="row"><label>Loan purpose</label></div><div class="chips" id="intent"></div></div>
+ <div class="field"><div class="row"><label>Loan grade</label></div><div class="chips grades" id="grade"></div></div>
+ <div class="lti"><span>Loan-to-income</span><div class="bar"><span id="ltiBar"></span></div><b id="lti">0%</b></div>
+ <h2>📜 Credit history</h2><div id="sl3"></div>
+ <div class="field"><div class="row"><label>Previous default on file?</label></div><div class="seg" id="dflt"></div></div>
+ <button class="go" id="go">Analyze credit risk →</button>
+</section>
+<section class="card res">
+ <h2>Risk assessment</h2>
+ <svg viewBox="0 0 200 118"><defs><linearGradient id="g"><stop offset="0" stop-color="#22d3a6"/><stop offset=".5" stop-color="#fbbf24"/><stop offset="1" stop-color="#ff5d73"/></linearGradient></defs>
+ <path class="track" d="M20 100A80 80 0 0 1 180 100"/><path id="arc" pathLength="100" d="M20 100A80 80 0 0 1 180 100"/><line id="tick" x1="0" y1="0" x2="0" y2="0"/></svg>
+ <div id="pct">–</div><div class="verdict" id="verdict">Awaiting input</div>
+ <p class="hint" id="hint">Adjust the sliders and press Analyze to see the default probability.</p>
+ <div class="stats"><div>Default probability<b id="s1">–</b></div><div>Decision threshold<b id="s2">–</b></div></div>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const S={person_age:28,person_income:60000,person_home_ownership:'RENT',person_emp_length:3,loan_intent:'PERSONAL',loan_grade:'B',loan_amnt:10000,loan_int_rate:11.5,cb_person_default_on_file:'N',cb_person_cred_hist_length:4};
+const sliders={sl1:[['person_age','Age','',18,80,1],['person_income','Annual income','$',5000,300000,1000],['person_emp_length','Employment length',' yrs',0,50,1]],
+sl2:[['loan_amnt','Loan amount','$',500,35000,100],['loan_int_rate','Interest rate','%',5,25,.1]],
+sl3:[['cb_person_cred_hist_length','Credit history length',' yrs',0,30,1]]};
+const fmt=(u,v)=>u==='$'?'$'+Number(v).toLocaleString():v+u;
+for(const[box,list]of Object.entries(sliders))list.forEach(([k,l,u,mn,mx,st])=>{
+ const d=document.createElement('div');d.className='field';
+ d.innerHTML=`<div class="row"><label>${l}</label><input class="num" type="number" id="n_${k}" step="${st}"></div><input type="range" id="r_${k}" min="${mn}" max="${mx}" step="${st}">`;
+ $(box).appendChild(d);const r=$('r_'+k),n=$('n_'+k);
+ const sync=v=>{S[k]=+v;r.value=v;n.value=v;r.style.setProperty('--p',Math.min(100,(v-mn)/(mx-mn)*100)+'%');lti()};
+ r.oninput=()=>sync(r.value);n.oninput=()=>{if(n.value!=='')sync(n.value)};sync(S[k]);
+});
+function chips(id,items,key,cls){const box=$(id);items.forEach(([v,label])=>{const b=document.createElement('button');b.className='chip';b.type='button';b.textContent=label;b.dataset.v=v;
+ b.onclick=()=>{S[key]=v;[...box.children].forEach(c=>c.classList.toggle('on',c===b))};box.appendChild(b);if(S[key]===v)b.classList.add('on')})}
+chips('home',[['RENT','🏠 Rent'],['OWN','🔑 Own'],['MORTGAGE','🏦 Mortgage'],['OTHER','📦 Other']],'person_home_ownership');
+chips('intent',[['PERSONAL','🙋 Personal'],['EDUCATION','🎓 Education'],['MEDICAL','🩺 Medical'],['VENTURE','🚀 Venture'],['HOMEIMPROVEMENT','🔨 Home improvement'],['DEBTCONSOLIDATION','🧾 Debt consolidation']],'loan_intent');
+chips('grade',['A','B','C','D','E','F','G'].map(g=>[g,g]),'loan_grade');
+chips('dflt',[['N','✅ No'],['Y','⚠️ Yes']],'cb_person_default_on_file');
+function lti(){const p=S.person_income>0?S.loan_amnt/S.person_income:0;$('lti').textContent=(p*100).toFixed(0)+'%';
+ const b=$('ltiBar');b.style.width=Math.min(100,p*100*2)+'%';b.style.background=p<.2?'var(--ok)':p<.35?'var(--mid)':'var(--bad)'}
+fetch('/health').then(r=>r.json()).then(h=>{if(h.model){$('dot').className='dot on';$('dot').lastChild.textContent='API online · v'+h.Version}}).catch(()=>$('dot').lastChild.textContent='API offline');
+function count(el,to,ms=1400){const t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/ms);el.textContent=(to*(1-Math.pow(1-k,3))).toFixed(1)+'%';if(k<1)requestAnimationFrame(f)})(t0)}
+$('go').onclick=async()=>{
+ const btn=$('go');btn.disabled=true;btn.classList.add('load');btn.textContent='Analyzing…';$('hint').className='hint';
+ try{
+  const r=await fetch('/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(S)});
+  const d=await r.json();
+  if(!r.ok)throw new Error(Array.isArray(d.detail)?d.detail.map(x=>x.loc.slice(-1)+': '+x.msg).join('; '):d.detail);
+  const p=d.default_probability,t=d.threshold,high=d.Result==='High Risk';
+  $('arc').style.stroke=p<t*.6?'var(--ok)':p<t?'var(--mid)':'var(--bad)';
+  $('arc').style.strokeDashoffset=100-p*100;
+  const a=Math.PI*(1-t);const x=n=>100+n*Math.cos(a),y=n=>100-n*Math.sin(a);
+  const tk=$('tick');tk.setAttribute('x1',x(70));tk.setAttribute('y1',y(70));tk.setAttribute('x2',x(90));tk.setAttribute('y2',y(90));tk.style.opacity=1;
+  count($('pct'),p*100);$('s1').textContent=(p*100).toFixed(1)+'%';$('s2').textContent=(t*100).toFixed(1)+'%';
+  const v=$('verdict');v.className='verdict '+(high?'bad':'ok');v.textContent=high?'⚠️ High Risk':'✅ Low Risk';
+  $('hint').textContent=high?'Probability of default is above the decision threshold (white marker). Consider a smaller loan or higher income.':'Probability of default is below the decision threshold (white marker). Looks healthy.';
+ }catch(e){$('hint').className='hint err';$('hint').textContent='Error: '+e.message}
+ btn.disabled=false;btn.classList.remove('load');btn.textContent='Analyze credit risk →';
+};
+</script></body></html>
